@@ -1,0 +1,86 @@
+Kevin Bastoul 802847
+Kristian Elset Bø 767956
+
+Part A Description, Pseudocode, and Time Complexity
+
+
+Class Overview:
+The program has 5 classes. 
+	Main – reads the input, initiates the creation of the board, initiates the playing of the game 
+	Board – maintains information about the current state of the board, including a two dimensional list of all the edges and a two dimensional list of the hexagons on the board 
+	Edge – a representation of an edge that stores its x & y coordinates, its status (aka. B, R, -, +), and its parents (aka. the coordinates of which hexagon(s) it belongs to)
+	Hexagon – a representation of a hexagon on the board that stores its x & y coordinates (denoted Hx & Hy to distinguish from edge coordinates), a List of its 6 edges, and status info such as “one free edge left”
+	HexGame – stores the Board and has various methods for “playing the game” (right now these are just methods to answer the part A questions)
+
+Basic program flow:
+	-Input read by Main 
+	-Board creation initiated by main and input data passed to Board
+	-Board creates edgeMap by storing input data in 2-dimensional list of Edges 
+	-Board creates hexMap by creating a 2-dimensional list of Hexs and assigning the corresponding edges to each Hex (via the formula shown in figure 2 below)
+	-Control is returned to Main
+	-Main creates HexGame and passes the Board to it, initiating gameplay
+	-HexGame constructor calls numberOfPossibleMoves(), maxNumberCaptureInOneMove(), and howManyHaveOneLeft() which output the answers to each of the three part A queries (explored in more detail below)
+
+   
+Figure 1: How the coordinates are obtained for edges and hexagons (included in separate pdf)
+   
+Figure 2: The formula by which a hexagon is mapped to its corresponding 6 edges (included in separate pdf)
+
+
+Query 1: Number of possible moves
+Pseudocode:
+numberOfPossibleMoves() {
+	counter = 0;
+	for (each row in edgeMap) 
+		for (each Edge in each row) 
+			if (Edge.status == ‘+’)  counter++;
+		endfor
+	endfor
+	return counter;
+}
+
+Time complexity: 
+(4*n-1)^2 indexes in the 2D edge array
+Each one is checked for a total of (4*n-1)^2 operations
+Which is: O(n^2) with n as the input dimension 
+
+---------
+
+Query 3: Number of hex cells available for capture by one move
+Pseudocode:
+howManyHaveOneLeft() {
+	return board.getHexesWithOneLeft().size()
+}
+
+Explanation:
+When the board class initially constructed the hexMap it stores all the hexagons that have 5 occupied edges into a List<Hex> called hexesWithOneLeft. When hexGame wants to figure out how many hexagons can be taken with a single move it simply retrieves this List from Board and checks its size.
+Time Complexity:
+O(1)
+
+---------
+
+Query 2: Max number of hex cells that can be captured by one move
+Pseudocode:
+maxNumberCaptureInOneMove() {
+	Set<Hex> canBeCaptured = board.getHexesWithOneLeft()  //explained above
+	If (canBeCaptured is empty) Return 0;
+	For (every hex in canBeCaptured) 
+		For (each edge of the hex) 
+			If (edge is empty) 
+				If ((canBeCaptured contains all the edge’s parents) && (edge has 2 parents))
+					Return 2;
+				endif
+			endif
+		endfor
+	endfor
+	Return 1;
+}
+Explanation:
+The algorithm retrieves the set of hexes with one edge left to be taken. Then, for each of these hexes, it looks at this empty edge and sees if it belongs to any of the other hexes in the set of hexes-with-one-left. If yes, two hexes can be captured in a single move. If no, but there are hexes with one left, then 1 hex can be captured with 1 move. If there are no hexes with one left, then no hexes can be captured in one move. 
+
+Time Complexity:
+(2n-1)^2 – number of indexes in the 2D hex array, with n as input dimension
+A subset of these are real hexes that can be in the canBeCaptured array (because some indices aren’t real board locations)
+Each hex could have all 6 edges checked
+So 6*(2n-1)^2 operations is an upper bound
+Which is: O(n^2) with n as input dimension
